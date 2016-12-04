@@ -250,47 +250,56 @@ void AudioOutputI2S::update(void)
 }
 
 
-// MCLK needs to be 48e6 / 1088 * 256 = 11.29411765 MHz -> 44.117647 kHz sample rate
-//
+/**
+ * Our output sample rate is 44.100 kHz which means we need an
+ * MCLK frequency of 256 * 44.100 kHz = 11.2896 MHz to drive our audio codec.
+ *
+ * MCLK is derived from the CPU clock and can be calculated using
+ * the following formula:
+ *
+ * MCLK = (CPU clock frequency * MCLK_MULT) / MCLK_DIV
+ *
+ * Where:
+ * MCLK_MULT is a positive integer with range 1-256 (8 bits)
+ * MCLK_DIV is a positive integer with range 1-4096 (12 bits)
+ * MCLK_MULT must be <= MCLK_DIV
+ *
+ */
 #if F_CPU == 96000000 || F_CPU == 48000000 || F_CPU == 24000000
   // PLL is at 96 MHz in these modes
-  #define MCLK_MULT 2
-  #define MCLK_DIV  17
+  #define MCLK_MULT	147
+  #define MCLK_DIV  1250
 #elif F_CPU == 72000000
-  #define MCLK_MULT 8
-  #define MCLK_DIV  51
+  #define MCLK_MULT 98
+  #define MCLK_DIV  625
 #elif F_CPU == 120000000
-  #define MCLK_MULT 8
-  #define MCLK_DIV  85
+  #define MCLK_MULT 205
+  #define MCLK_DIV  2179 // MCLK = 11289582 Hz (off by 18Hz)
 #elif F_CPU == 144000000
-  //16.9411 MHz Mclk 44.118 kHz sample rate
-  #define MCLK_MULT 2
-  #define MCLK_DIV  17
-//  #define MCLK_MULT 4
-//  #define MCLK_DIV  51
+  #define MCLK_MULT 49
+  #define MCLK_DIV  625
+
 #elif F_CPU == 168000000
-  #define MCLK_MULT 8
-  #define MCLK_DIV  119
+  #define MCLK_MULT 252
+  #define MCLK_DIV  2500 //16.9344 MHz
+
 #elif F_CPU == 180000000
-  //24.5760MHz
-  #define MCLK_MULT 33
-  #define MCLK_DIV  248
-  //#define MCLK_MULT 16
-  //#define MCLK_DIV  255
+  #define MCLK_MULT 196
+  #define MCLK_DIV  3125
   #define MCLK_SRC  0
 #elif F_CPU == 192000000
-  #define MCLK_MULT 1
-  #define MCLK_DIV  17
+  #define MCLK_MULT 147
+  #define MCLK_DIV  2500
 #elif F_CPU == 216000000
-  #define MCLK_MULT 8
-  #define MCLK_DIV  153
+  #define MCLK_MULT 98
+  #define MCLK_DIV  1875
   #define MCLK_SRC  0
 #elif F_CPU == 240000000
-  #define MCLK_MULT 4
-  #define MCLK_DIV  85
+  #define MCLK_MULT 147
+  #define MCLK_DIV  3125
 #elif F_CPU == 16000000
-  #define MCLK_MULT 12
-  #define MCLK_DIV  17
+  #define MCLK_MULT 151
+  #define MCLK_DIV  214 // MCLK = 11289719 Hz (off by 119Hz)
 #else
   #error "This CPU Clock Speed is not supported by the Audio library";
 #endif
